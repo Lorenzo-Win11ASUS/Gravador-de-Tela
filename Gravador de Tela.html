@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lorenzo OS - Gravador de Tela</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #111;
+      color: #fff;
+      font-family: monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    button {
+      padding: 20px 40px;
+      font-size: 24px;
+      border: none;
+      border-radius: 10px;
+      margin: 20px;
+      cursor: pointer;
+    }
+    #startBtn { background-color: #28a745; }
+    #stopBtn  { background-color: #dc3545; display: none; }
+  </style>
+</head>
+<body>
+  <h1>🎥 Gravador de Tela - Modo Silencioso</h1>
+  <p id="status">Pronto para gravar?</p>
+  <button id="startBtn">GRAVAR</button>
+  <button id="stopBtn">PARAR</button>
+
+  <script>
+    let mediaRecorder;
+    let chunks = [];
+
+    document.getElementById('startBtn').onclick = async () => {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false // ← sem som, sem microfone, só tela
+      });
+
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = e => chunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'gravacao_silenciosa.webm';
+        a.click();
+        chunks = [];
+      };
+
+      mediaRecorder.start();
+      document.getElementById('status').textContent = '🎞️ Gravando somente a tela (sem áudio)';
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('stopBtn').style.display = 'inline-block';
+    };
+
+    document.getElementById('stopBtn').onclick = () => {
+      mediaRecorder.stop();
+      document.getElementById('status').textContent = '✅ Gravação encerrada!';
+      document.getElementById('stopBtn').style.display = 'none';
+      document.getElementById('startBtn').style.display = 'inline-block';
+    };
+  </script>
+</body>
+</html>
